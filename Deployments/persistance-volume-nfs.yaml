@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: ha-nfs-persitent-volume                                
+spec:
+  capacity:
+    storage: 2Gi
+  storageClassName: local-path
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    path: /export/nasty/appdata/Home-Assistant-Core/                             
+    server: 10.10.20.10
+  claimRef:
+    namespace: default
+    name: ha-persitent-volume-claim                         
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ha-persitent-volume-claim                          
+spec:
+  storageClassName: local-path
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi       

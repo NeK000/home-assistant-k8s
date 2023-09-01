@@ -1,0 +1,4 @@
+image:
+  tag: "2023.4"
+storage:
+  type: longhorn

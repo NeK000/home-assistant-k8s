@@ -1,0 +1,67 @@
+                             
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: home-assistant   
+  namespace: default
+spec:
+  replicas: 1                                                        
+  selector:
+    matchLabels:
+      app: home-assistant   
+  template:
+    metadata:
+      labels:
+        app: home-assistant   
+    spec:
+      hostNetwork: true
+      volumes:
+        - name: ha-volume                                         
+          persistentVolumeClaim: 
+            claimName: ha-persitent-volume-claim        
+      containers:
+        - name: home-assistant   
+          image: homeassistant/home-assistant:2023.4
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+          - name: ha-volume      
+            mountPath: /config
+          ports:
+          - containerPort: 8123                                       
+            name: web
+            protocol: TCP
+          - containerPort: 21064                                       
+            name: homekit
+            protocol: TCP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: home-assistant-cluster-ip
+  namespace: default
+spec:
+  ports:
+    - name: http
+      port: 30123
+      protocol: TCP
+      targetPort: 8123
+  selector:
+    app: home-assistant
+  type: LoadBalancer
+---
+  apiVersion: traefik.containo.us/v1alpha1
+  kind: IngressRoute
+  metadata:
+    name: home-assistant-ui
+    namespace: default
+  spec:
+    entryPoints:
+      - web
+    routes:
+      - match: Host(`home-assistant.access.local`)
+        kind: Rule
+        services:
+          - name: home-assistant-cluster-ip
+            port: 30123
+---
