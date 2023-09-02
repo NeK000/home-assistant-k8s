@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: home-assistant-deployer
+  namespace: home-assistant
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: home-assistant-deployer
+  template:
+    metadata:
+      labels:
+        app: home-assistant-deployer
+    spec:
+      volumes:
+        - name: home-assistant-volume
+          persistentVolumeClaim:
+            claimName: home-assistant-persitent-volume-claim
+      containers:
+        - name: home-assistant
+          image: homeassistant/home-assistant:2023.6
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1024Mi"
+              cpu: "500m"
+          volumeMounts:
+            - name: home-assistant-volume
+              mountPath: /config
+          ports:
+            - containerPort: 8123
+              name: home-assistant-port
+              protocol: TCP
+            - containerPort: 21064
+              name: home-assistant-homekit
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /config/info
+              port: home-assistant-port
+            failureThreshold: 1
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /config/info
+              port: home-assistant-port
+            failureThreshold: 1
+            periodSeconds: 10
+          startupProbe:
+            httpGet:
+              path: /config/info
+              port: home-assistant-port
+            failureThreshold: 30
+            periodSeconds: 10

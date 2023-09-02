@@ -1,0 +1,14 @@
+  apiVersion: traefik.containo.us/v1alpha1
+  kind: IngressRoute
+  metadata:
+    name: home-assistant-ui
+    namespace: default
+  spec:
+    entryPoints:
+      - web
+    routes:
+      - match: Host(`home-assistant.access.local`)
+        kind: Rule
+        services:
+          - name: home-assistant-cluster-ip
+            port: 30123
