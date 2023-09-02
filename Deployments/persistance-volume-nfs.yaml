@@ -1,10 +1,11 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: ha-nfs-persitent-volume                                
+  name: home-assistant-nfs-persitent-volume
+  namespace: home-assistant                                
 spec:
   capacity:
-    storage: 2Gi
+    storage: 10Gi
   storageClassName: local-path
   accessModes:
     - ReadWriteOnce
@@ -13,17 +14,18 @@ spec:
     path: /export/nasty/appdata/Home-Assistant-Core/                             
     server: 10.10.20.10
   claimRef:
-    namespace: default
-    name: ha-persitent-volume-claim                         
+    namespace: home-assistant
+    name: home-assistant-persitent-volume-claim                      
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: ha-persitent-volume-claim                          
+  name: home-assistant-persitent-volume-claim
+  namespace: home-assistant                    
 spec:
   storageClassName: local-path
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 2Gi       
+      storage: 10Gi       

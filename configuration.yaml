@@ -1,4 +1,20 @@
-image:
-  tag: "2023.4"
+deployment:
+  image:
+    name: homeassistant/home-assistant
+    tag: 2023.6
+# HomeKit requires the deployment to be mounted on the host network. In case homekit is enabled the container will be attached to the host network     
+# Homekit will run on port 21064 by default
+  homekit:
+    enabled: false
+### Storage type can be longhorn or nfs storage
+#### Example :
 storage:
-  type: longhorn
+  size: 10Gi
+  # type: longhorn #- will deploy PVC with  storage type longhorn
+  type: nfs #- will deploy PVC with storage type NFS
+  nfs:
+    server: 10.10.20.10
+    path: "/export/nasty/appdata/Home-Assistant-Core/"
+service:
+  port: 30123
+  ingressHost: home-assistant.access.local
