@@ -6,19 +6,18 @@ source ./Utilities/logging.sh
 source ./Utilities/validation.sh
 source ./Utilities/action.sh
 deploymentName="ha-deployment"
-deploymentNamePritty="Home Assitant deployment"
+deploymentNamePretty ="Home Assitant"
 loggingFile="installation-log-$(date +'%d-%m-%Y').txt"
 {
-    ####Reusable start part in the action script
-    scriptStartMessage "Starting installation of $deploymentNamePritty towards Kubernetes Cluster"
+
+    scriptStartMessage "Starting installation of $deploymentNamePretty towards Kubernetes Cluster"
     deploymentDirectory="$(date +'%d-%m-%Y')-$deploymentName"
     isKubectlPresent
     createTempDirectory "$deploymentDirectory"
     copyDeploymentsDirectoryToTemp "$deploymentDirectory"
     infoMessage "Preparing distribution based on configuration.yaml ===> "
     filePrint "$(<configuration.yaml)"
-    #####End of reusable start part
-    #### Home Assistant Deployment and configurations.
+
     namespaceYaml=$deploymentDirectory/namespace.yaml
     pvcLonghornYaml=$deploymentDirectory/persistance-volume-longhorn.yaml
     pvcNfsYaml=$deploymentDirectory/persistance-volume-nfs.yaml
@@ -51,11 +50,26 @@ loggingFile="installation-log-$(date +'%d-%m-%Y').txt"
     ROUTE=$(yq .service.ingressHost configuration.yaml)
 
     SERVICE_INGRESS_ROUTE="Host('$ROUTE')"    yq -i '.spec.routes[0].match = strenv(SERVICE_INGRESS_ROUTE)' $ingressRouteYaml
-    cat $ingressRouteYaml
 
-    #### Reusable end part in the action script
+    namespaceYaml=$deploymentDirectory/namespace.yaml
+    pvcLonghornYaml=$deploymentDirectory/persistance-volume-longhorn.yaml
+    pvcNfsYaml=$deploymentDirectory/persistance-volume-nfs.yaml
+    deploymentYaml=$deploymentDirectory/deployment.yaml
+    serviceYaml=$deploymentDirectory/service.yaml
+    ingressRouteYaml=$deploymentDirectory/ingress-route.yaml
+
+    infoMessage "Deploying $deploymentNamePretty"
+    kubectl apply -f $namespaceYaml
+    STORAGE_TYPE=$(yq .storage.type configuration.yaml)
+    if [ "$STORAGE_TYPE" = "longhorn" ] ; then
+    kubectl apply -f $pvcLonghornYaml
+    else
+    kubectl apply -f $pvcNfsYaml
+    fi
+    kubectl apply -f $deploymentYaml
+    kubectl apply -f $serviceYaml
+    kubectl apply -f $ingressRouteYaml
+
     removeTempDirectory "$deploymentDirectory"
-    scriptEndMessage "Succesfull installation of Home Assistant !!!"
-    #### End of reusable end part
-
+    scriptEndMessage "Succesfull installation of $deploymentNamePretty !!!"
 }
